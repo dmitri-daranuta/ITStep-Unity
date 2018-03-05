@@ -46,7 +46,13 @@ public class ConsoleController : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.Alpha6)) {
 			emptyChild = new GameObject("Object");
 			emptyChild.transform.parent = parent.transform;
-			emptyChild.AddComponent<Camera>();
+
+			Component[] comps = parent.GetComponents(typeof(Component));
+			foreach (Component com in comps) {
+				if (com.GetType () != typeof(Transform) && com.GetType() != typeof(AudioListener)) {
+					emptyChild.AddComponent (com.GetType ());
+				}
+			}
 		}
 
 		if (Input.GetKeyDown (KeyCode.Alpha7)) {
