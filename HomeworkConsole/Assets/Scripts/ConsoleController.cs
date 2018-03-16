@@ -1,10 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ConsoleController : MonoBehaviour {
 
 	public string username;
+	public float changeSpeed = .5f;
+	public Text textMenu;
+	public Text textHelp;
 
 	private GameObject emptyChild;
 	private GameObject parent;
@@ -12,6 +16,9 @@ public class ConsoleController : MonoBehaviour {
 	private Color defaultColor;
 	private bool rainbow = false;
 	private bool emptyObj = false;
+	private bool pingPong = false;
+	private bool lerp = false;
+	static float tempTime = 0f;
 
 	void Start () {
 		parent = GameObject.FindWithTag ("MainCamera");
@@ -20,6 +27,7 @@ public class ConsoleController : MonoBehaviour {
 		if (string.IsNullOrEmpty(username)) {
 			username = "Name is empty!";
 		}
+
 	}
 
 	void Update () {
@@ -41,6 +49,8 @@ public class ConsoleController : MonoBehaviour {
 
 		if (Input.GetKeyDown(KeyCode.Alpha5)) {
 			cam.backgroundColor = defaultColor;
+			textMenu.color = Color.white;
+			textHelp.color = Color.white;
 		}
 
 		if (Input.GetKeyDown (KeyCode.Alpha6)) {
@@ -59,6 +69,17 @@ public class ConsoleController : MonoBehaviour {
 			emptyObj = !emptyObj;
 		}
 
+		if (Input.GetKeyDown (KeyCode.Alpha8)) {
+			lerp = !lerp;
+			if (tempTime > 1f) {
+				tempTime = 0f;
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha9)) {
+			pingPong = !pingPong;
+		}
+
 		if (Input.GetKeyDown(KeyCode.Alpha0)) {
 			Application.Quit ();
 		}
@@ -70,6 +91,22 @@ public class ConsoleController : MonoBehaviour {
 
 		if (rainbow) {
 			cam.backgroundColor = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+		}
+
+		if (lerp) {
+			tempTime += changeSpeed * Time.deltaTime;
+
+			if (tempTime < 1f) {
+				cam.backgroundColor = Color.Lerp (Color.black, Color.white, tempTime);
+				textMenu.color = Color.Lerp (Color.white, Color.black, tempTime);
+				textHelp.color = Color.Lerp (Color.white, Color.black, tempTime);
+			} else {
+				lerp = !lerp;
+			}
+		}
+
+		if (pingPong) {
+			cam.backgroundColor = Color.Lerp (Color.blue, Color.green, Mathf.PingPong(Time.time, 1));
 		}
 	}
 }
