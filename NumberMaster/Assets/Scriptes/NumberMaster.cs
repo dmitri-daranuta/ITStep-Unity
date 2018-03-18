@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class NumberMaster : MonoBehaviour {
 
@@ -10,25 +11,28 @@ public class NumberMaster : MonoBehaviour {
 	public Text randomText;
 	public Text newNumberText;
 	public Text scoreText;
-	public Text yourScore;
+	public Text highScore;
 	public Text msg;
+	public Text yourScore;
 	public GameObject gameObj;
-	public GameObject startObj;
+	public GameObject mainObj;
+	public GameObject gameOverObj;
 
 	private int randomNumber;
-	private int score = 0;
+	private int gameScore = 0;
+	private int gameHighScore;
 	private bool youWin = false;
-	private bool gOver = false;
 	private float timer = 0f;
+
+	void Awake () {
+		gameHighScore = PlayerPrefs.GetInt("HighScore");
+		highScore.text = gameHighScore.ToString();
+	}
 
 	void Start () {
 		gameObj.SetActive (false);
-		startObj.SetActive (true);
-		if (score > 0) {
-			yourScore.gameObject.SetActive (true);
-		} else {
-			yourScore.gameObject.SetActive (false);
-		}
+		gameOverObj.SetActive (false);
+		mainObj.SetActive (true);
 	}
 
 	// Update is called once per frame
@@ -42,31 +46,24 @@ public class NumberMaster : MonoBehaviour {
 			}
 		}
 
-		if (gOver) {
-			timer += Time.deltaTime;
-
-			if (timer > 2f) {
-				gameObj.SetActive (false);
-				startObj.SetActive (true);
-				timer = 0f;
-				gOver = !gOver;
-			}
-		}
-
 		if (Input.GetKeyDown (KeyCode.UpArrow)) {
-			check ("higher");
+			Check ("higher");
 		}
 
 		if (Input.GetKeyDown (KeyCode.DownArrow)) {
-			check ("lower");
+			Check ("lower");
 		}
 
 		if (Input.GetKeyDown (KeyCode.Return)) {
-			startGame ();
+			InitGame ();
+		}
+
+		if (Input.GetKeyDown (KeyCode.Escape)) {
+			QuitGame ();
 		}
 	}
 
-	public void check(string type) {
+	public void Check(string type) {
 		int newNumer = Random.Range (min, max + 1);
 
 		newNumberText.text = newNumer.ToString ();
@@ -74,50 +71,63 @@ public class NumberMaster : MonoBehaviour {
 		switch (type) {
 		case "lower":
 			if (newNumer < randomNumber) {
-				win (newNumer);
+				Win (newNumer);
 			} else {
-				gameOver ();
+				GameOver ();
 			}
 			break;
 		case "higher":
 			if (newNumer > randomNumber) {
-				win (newNumer);
+				Win (newNumer);
 			} else {
-				gameOver ();
+				GameOver ();
 			}
 			break;
 		}
 	}
 
-	public void startGame() {
+	public void InitGame() {
 		newNumberText.text = "";
 		msg.color = Color.white;
 		msg.text = "Please choose lower or higher!";
 		scoreText.text = "Score: 0";
-		score = 0;
+		gameScore = 0;
 		randomNumber = Random.Range (min, max + 1);
 		randomText.text = randomNumber.ToString ();
 		gameObj.SetActive (true);
-		startObj.SetActive (false);
+		mainObj.SetActive (false);
+		gameOverObj.SetActive (false);
 	}
 
-	public void win(int number) {
+	public void QuitGame () {
+		Application.Quit ();
+	}
+
+	public void RestartGame () {
+		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+	}
+
+	public void Win(int number) {
 		youWin = true;
 		randomNumber = number;
 		randomText.text = randomNumber.ToString ();
 		msg.text = "You have won!";
 		msg.color = Color.white;
 		newNumberText.color = Color.green;
-		score += 1;
-		scoreText.text = "Score: " + score.ToString ();
+		gameScore += 1;
+		scoreText.text = "Score: " + gameScore.ToString ();
 	}
 
-	private void gameOver() {
-		gOver = true;
-		msg.text = "Game over!";
-		msg.color = Color.red;
+	private void GameOver() {
+		gameHighScore = PlayerPrefs.GetInt("HighScore");
+		// Check and update highscore, if game score is greater than high score.
+		if (gameScore > gameHighScore) {
+			highScore.text = gameScore.ToString ();
+			PlayerPrefs.SetInt("HighScore", gameScore);
+			PlayerPrefs.Save();
+		}
 		newNumberText.color = Color.red;
-		yourScore.text = "Your score is " + score.ToString ();
-		yourScore.gameObject.SetActive (true);
+		yourScore.text = "Your score is " + gameScore.ToString ();
+		gameOverObj.SetActive (true);
 	}
 }
